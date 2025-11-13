@@ -52,6 +52,13 @@ def is_pinch(handLms, threshold=0.05):
     distance = math.hypot(x2 - x1, y2 - y1)
     return distance < threshold
 
+def isPinkyThumb(handLMS, threshold=0.05):
+    # thumb tip (4) pinky tip (20)
+    x1, y1 = handLms.landmark[4].x, handLms.landmark[4].y
+    x2, y2 = handLms.landmark[20].x, handLms.landmark[20].y
+    distance = math.hypot(x2 - x1, y2 - y1)
+    return distance < threshold
+
 # Camera
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 854)
@@ -72,6 +79,7 @@ while True:
     gesture = None
     cursor_x, cursor_y = prev_cursor_x, prev_cursor_y
     pinch_now = False
+    pinky_thumb_now = False
 
     if results.multi_hand_landmarks:
         for handLms in results.multi_hand_landmarks:
@@ -95,6 +103,8 @@ while True:
             # ---- Pinch detection ----
             if is_pinch(handLms):
                 pinch_now = True
+            if isPinkyThumb(handLms):
+                pinky_thumb_now = True
 
     # ---- Handle pinch click ----
     if pinch_now and not pinched_last_frame:
@@ -109,6 +119,12 @@ while True:
             last_click_time = now
 
     pinched_last_frame = pinch_now
+
+    if pinky_thumb_now and not pinky_thumb_last_frame:
+        pyautogui.rightClick()
+        print("Right click!")
+
+    pinky_thumb_last_frame = pinky_thumb_now
 
     # Move cursor every frame
     pyautogui.moveTo(cursor_x, cursor_y)
