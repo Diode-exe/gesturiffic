@@ -11,5 +11,13 @@ Upping the scale will make it easier to reach the edge, but will make it less pr
 Tap your index and thumb together to left click, double tap to double click, tap thumb and pinky for right click. 
 You have to tap pretty hard together.
 
+You cannot use the mouse while this program is running. Press Escape while the capture window is in focus to close the program. 
+
+### Note:
+
+Everything is processed on-device. I do not receive any data from this program, it works offline. 
+Also, this will not work in Task Manager, on the lock screen, or in the User Account Control box 
+(Do you want this program to make changes to your computer?)
+
 ### Requirements
 ```pip install -r .\requirements.txt```
