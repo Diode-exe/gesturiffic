@@ -1,0 +1,4 @@
+comtypes
+mediapipe
+pyautogui
+pycaw
