@@ -50,8 +50,8 @@ def is_pinch(handLms, threshold=0.05):
 
 # Camera
 cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 854)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
 # State tracking
 last_gesture = None
@@ -61,6 +61,7 @@ pinched_last_frame = False
 
 while True:
     ret, frame = cap.read()
+    frame = cv2.flip(frame, 1)
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     results = hands.process(rgb)
 
@@ -73,8 +74,20 @@ while True:
             mpDraw.draw_landmarks(frame, handLms, mpHands.HAND_CONNECTIONS)
 
             # ---- Cursor mapping ----
-            target_x = handLms.landmark[8].x * screen_width
-            target_y = handLms.landmark[20].y * screen_height
+            x_scale = 0.4
+            y_scale = 0.4
+
+            # Get normalized coordinates
+            x_norm = handLms.landmark[8].x - 0.5
+            y_norm = handLms.landmark[8].y - 0.5
+
+            # Scale and clamp between 0–1 again
+            x_mapped = min(max(x_norm * x_scale + 0.5, 0), 1)
+            y_mapped = min(max(y_norm * y_scale + 0.5, 0), 1)
+
+            # Convert to screen coords
+            target_x = x_mapped * screen_width
+            target_y = y_mapped * screen_height
             cursor_x = prev_cursor_x + (target_x - prev_cursor_x) * smoothing
             cursor_y = prev_cursor_y + (target_y - prev_cursor_y) * smoothing
 
