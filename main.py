@@ -5,6 +5,10 @@ from ctypes import POINTER, cast
 from comtypes import CLSCTX_ALL
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 import math
+import time
+
+last_click_time = 0
+double_click_delay = 0.3
 
 # Mediapipe
 mpHands = mp.solutions.hands
@@ -74,18 +78,15 @@ while True:
             mpDraw.draw_landmarks(frame, handLms, mpHands.HAND_CONNECTIONS)
 
             # ---- Cursor mapping ----
-            x_scale = 0.4
-            y_scale = 0.4
+            x_scale = 2.0
+            y_scale = 2.0
 
-            # Get normalized coordinates
             x_norm = handLms.landmark[8].x - 0.5
             y_norm = handLms.landmark[8].y - 0.5
 
-            # Scale and clamp between 0–1 again
             x_mapped = min(max(x_norm * x_scale + 0.5, 0), 1)
             y_mapped = min(max(y_norm * y_scale + 0.5, 0), 1)
 
-            # Convert to screen coords
             target_x = x_mapped * screen_width
             target_y = y_mapped * screen_height
             cursor_x = prev_cursor_x + (target_x - prev_cursor_x) * smoothing
@@ -97,8 +98,15 @@ while True:
 
     # ---- Handle pinch click ----
     if pinch_now and not pinched_last_frame:
-        pyautogui.click()
-        print("Click!")
+        now = time.time()
+        if now - last_click_time < double_click_delay:
+            pyautogui.doubleClick()
+            print("Double Click!")
+            last_click_time = 0
+        else:
+            pyautogui.click()
+            print("Single Click!")
+            last_click_time = now
 
     pinched_last_frame = pinch_now
 
@@ -106,10 +114,11 @@ while True:
     pyautogui.moveTo(cursor_x, cursor_y)
     prev_cursor_x, prev_cursor_y = cursor_x, cursor_y
 
-    # Show camera
+    # ---- Always show frame ----
     cv2.imshow("Feed", frame)
     if cv2.waitKey(1) & 0xFF == 27:
         break
+
 
 cap.release()
 cv2.destroyAllWindows()
