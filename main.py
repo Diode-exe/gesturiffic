@@ -125,7 +125,7 @@ while True:
         pinky_last = pinky_now
 
     # show frame
-    cv2.imshow("Feed", frame)
+    cv2.imshow("Gesturiffic", frame)
     if cv2.waitKey(1) & 0xFF == 27:
         break
 
