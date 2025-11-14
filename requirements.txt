@@ -1,4 +1,2 @@
-comtypes
 mediapipe
 pyautogui
-pycaw
