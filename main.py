@@ -58,6 +58,8 @@ cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 854)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
+print("Welcome to Gesturiffic")
+
 while True:
     ok, frame = cap.read()
     if not ok:
