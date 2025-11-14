@@ -1,138 +1,130 @@
 import cv2
 import mediapipe as mp
 import pyautogui
-from ctypes import POINTER, cast
-from comtypes import CLSCTX_ALL
-from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 import math
 import time
 
-# -------------------------
-# Mediapipe
-# -------------------------
-mpHands = mp.solutions.hands
-hands = mpHands.Hands(max_num_hands=1)
-mpDraw = mp.solutions.drawing_utils
+# ------------------------------------
+# Mediapipe setup
+# ------------------------------------
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands(max_num_hands=1)
+mp_draw = mp.solutions.drawing_utils
 
 pyautogui.FAILSAFE = False
-screen_width, screen_height = pyautogui.size()
+screen_w, screen_h = pyautogui.size()
 
-# -------------------------
-# Audio volume (pycaw)
-# -------------------------
-devices = AudioUtilities.GetSpeakers()
-interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-volume = cast(interface, POINTER(IAudioEndpointVolume))
+# ------------------------------------
+# Hand normalization range
+# ------------------------------------
+# These values define the "usable" portion of the camera image.
+# You can widen/narrow these if needed.
+HAND_MIN = 0.15
+HAND_MAX = 0.85
 
+def normalize(v):
+    """Map camera range (HAND_MIN–HAND_MAX) to (0–1)."""
+    return (v - HAND_MIN) / (HAND_MAX - HAND_MIN)
 
-# -------------------------
-# Gesture detection helpers
-# -------------------------
-def pinch_distance(handLms, a, b):
-    x1, y1 = handLms.landmark[a].x, handLms.landmark[a].y
-    x2, y2 = handLms.landmark[b].x, handLms.landmark[b].y
-    return math.hypot(x2 - x1, y2 - y1)
+# ------------------------------------
+# Pinch detection helpers
+# ------------------------------------
+def pinch_distance(hand, a, b):
+    ax, ay = hand.landmark[a].x, hand.landmark[a].y
+    bx, by = hand.landmark[b].x, hand.landmark[b].y
+    return math.hypot(bx - ax, by - ay)
 
-def pinch_index(handLms, th=0.05):
-    return pinch_distance(handLms, 4, 8) < th
+def pinch_index(hand): return pinch_distance(hand, 4, 8) < 0.08
+def pinch_middle(hand): return pinch_distance(hand, 4, 12) < 0.08
+def pinch_pinky(hand): return pinch_distance(hand, 4, 20) < 0.08
 
-def pinch_middle(handLms, th=0.05):
-    return pinch_distance(handLms, 4, 12) < th
-
-def pinch_pinky(handLms, th=0.05):
-    return pinch_distance(handLms, 4, 20) < th
-
-
-# -------------------------
-# State variables
-# -------------------------
+# ------------------------------------
+# State
+# ------------------------------------
 prev_x, prev_y = 0, 0
-smooth = 0.2
+smooth = 0.25
 
 index_last = False
 middle_last = False
 pinky_last = False
 
 last_right_click = 0
-right_click_delay = 0.3
+right_delay = 0.3
 
-
-# -------------------------
+# ------------------------------------
 # Camera
-# -------------------------
+# ------------------------------------
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 854)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-
 while True:
-    ret, frame = cap.read()
+    ok, frame = cap.read()
+    if not ok:
+        break
+
     frame = cv2.flip(frame, 1)
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     results = hands.process(rgb)
 
     if results.multi_hand_landmarks:
-        handLms = results.multi_hand_landmarks[0]
-        mpDraw.draw_landmarks(frame, handLms, mpHands.HAND_CONNECTIONS)
+        hand = results.multi_hand_landmarks[0]
+        mp_draw.draw_landmarks(frame, hand, mp_hands.HAND_CONNECTIONS)
 
-        # -------------------------
-        # Cursor smoothing
-        # -------------------------
-        x_norm = handLms.landmark[8].x - 0.5
-        y_norm = handLms.landmark[8].y - 0.5
+        # ------------------------------------
+        # Finger position -> screen position
+        # ------------------------------------
+        raw_x = hand.landmark[8].x
+        raw_y = hand.landmark[8].y
 
-        x_map = min(max(x_norm * 2 + 0.5, 0), 1)
-        y_map = min(max(y_norm * 2 + 0.5, 0), 1)
+        # Normalize into 0–1 range
+        nx = min(max(normalize(raw_x), 0), 1)
+        ny = min(max(normalize(raw_y), 0), 1)
 
-        target_x = x_map * screen_width
-        target_y = y_map * screen_height
+        target_x = nx * screen_w
+        target_y = ny * screen_h
 
+        # Smooth movement
         cur_x = prev_x + (target_x - prev_x) * smooth
         cur_y = prev_y + (target_y - prev_y) * smooth
 
         pyautogui.moveTo(cur_x, cur_y)
         prev_x, prev_y = cur_x, cur_y
 
-        # -------------------------
-        # Gesture states
-        # -------------------------
-        idx_now = pinch_index(handLms)
-        mid_now = pinch_middle(handLms)
-        pinky_now = pinch_pinky(handLms)
+        # ------------------------------------
+        # Gestures
+        # ------------------------------------
+        idx_now = pinch_index(hand)
+        mid_now = pinch_middle(hand)
+        pinky_now = pinch_pinky(hand)
 
-        # -------------------------
-        # Index pinch -> single click
-        # -------------------------
+        # left click
         if idx_now and not index_last:
             pyautogui.click()
-            print("Single click")
+            print("Click")
 
-        # -------------------------
-        # Middle pinch -> hold & drag
-        # -------------------------
+        # drag
         if mid_now and not middle_last:
             pyautogui.mouseDown()
-            print("Hold start")
+            print("Drag start")
 
         if not mid_now and middle_last:
             pyautogui.mouseUp()
-            print("Hold end")
+            print("Drag end")
 
-        # -------------------------
-        # Pinky pinch -> right click (debounced)
-        # -------------------------
+        # right click
         now = time.time()
-        if pinky_now and not pinky_last:
-            if now - last_right_click >= right_click_delay:
-                pyautogui.rightClick()
-                last_right_click = now
-                print("Right click")
+        if pinky_now and not pinky_last and now - last_right_click >= right_delay:
+            pyautogui.rightClick()
+            last_right_click = now
+            print("Right click")
 
         index_last = idx_now
         middle_last = mid_now
         pinky_last = pinky_now
 
+    # show frame
     cv2.imshow("Feed", frame)
     if cv2.waitKey(1) & 0xFF == 27:
         break
