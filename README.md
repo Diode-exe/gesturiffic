@@ -10,7 +10,7 @@ Upping the scale will make it easier to reach the edge, but will make it less pr
 
 Tap your index and thumb together to left click, middle to click and drag, tap thumb and pinky for right click. 
 
-Press Escape while the capture window is in focus to close the program. 
+Press Escape while the capture window is in focus to close the program. Press H for help. 
 
 ### Note:
 

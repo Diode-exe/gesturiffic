@@ -34,9 +34,22 @@ def pinch_distance(hand, a, b):
     bx, by = hand.landmark[b].x, hand.landmark[b].y
     return math.hypot(bx - ax, by - ay)
 
+# the number on the very right is a threshold for how close your fingers need to be to register a click
+# 0.08 is pretty much perfect
 def pinch_index(hand): return pinch_distance(hand, 4, 8) < 0.08
 def pinch_middle(hand): return pinch_distance(hand, 4, 12) < 0.08
 def pinch_pinky(hand): return pinch_distance(hand, 4, 20) < 0.08
+
+def print_help():
+    print("HELP CALLED")
+    try:
+        with open("README.md", "r") as f:
+            print("FILE OPEN OK")
+            file = f.read()
+        print(file)
+    except Exception as e:
+        print("ERROR:", e)
+
 
 # ------------------------------------
 # State
@@ -55,14 +68,15 @@ right_delay = 0.3
 # Camera
 # ------------------------------------
 cap = cv2.VideoCapture(0)
+# this res works well on a ThinkPad X390 i5 8365U
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 854)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
 print("Welcome to Gesturiffic")
 
 while True:
-    ok, frame = cap.read()
-    if not ok:
+    ret, frame = cap.read()
+    if not ret:
         break
 
     frame = cv2.flip(frame, 1)
@@ -83,11 +97,13 @@ while True:
         # Normalize into 0–1 range
         nx = min(max(normalize(raw_x), 0), 1)
         ny = min(max(normalize(raw_y), 0), 1)
+        # todo: figure out what this does 
 
         target_x = nx * screen_w
         target_y = ny * screen_h
 
         # Smooth movement
+        # spoiler: it's not smooth
         cur_x = prev_x + (target_x - prev_x) * smooth
         cur_y = prev_y + (target_y - prev_y) * smooth
 
@@ -118,6 +134,7 @@ while True:
         # right click
         now = time.time()
         if pinky_now and not pinky_last and now - last_right_click >= right_delay:
+            # damn
             pyautogui.rightClick()
             last_right_click = now
             print("Right click")
@@ -129,7 +146,10 @@ while True:
     # show frame
     cv2.imshow("Gesturiffic", frame)
     if cv2.waitKey(1) & 0xFF == 27:
+        # press escape and it stops
         break
+    if cv2.waitKey(1) & 0xFF == ord('h'):
+        print_help()
 
 cap.release()
 cv2.destroyAllWindows()
