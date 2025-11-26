@@ -19,12 +19,17 @@ screen_w, screen_h = pyautogui.size()
 # ------------------------------------
 # These values define the "usable" portion of the camera image.
 # You can widen/narrow these if needed.
-HAND_MIN = 0.15
-HAND_MAX = 0.85
+HAND_MIN = 0.05
+HAND_MAX = 0.95
 
 def normalize(v):
     """Map camera range (HAND_MIN–HAND_MAX) to (0–1)."""
     return (v - HAND_MIN) / (HAND_MAX - HAND_MIN)
+
+def ease(x):
+    # smootherstep
+    return x * x * x * (x * (x * 6 - 15) + 10)
+
 
 # ------------------------------------
 # Pinch detection helpers
@@ -69,8 +74,8 @@ right_delay = 0.3
 # ------------------------------------
 cap = cv2.VideoCapture(0)
 # this res works well on a ThinkPad X390 i5 8365U
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 854)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 896)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 504)
 
 print("Welcome to Gesturiffic")
 
@@ -95,9 +100,8 @@ while True:
         raw_y = hand.landmark[8].y
 
         # Normalize into 0–1 range
-        nx = min(max(normalize(raw_x), 0), 1)
-        ny = min(max(normalize(raw_y), 0), 1)
-        # todo: figure out what this does 
+        nx = ease(min(max(normalize(raw_x), 0), 1))
+        ny = ease(min(max(normalize(raw_y), 0), 1))
 
         target_x = nx * screen_w
         target_y = ny * screen_h
