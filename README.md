@@ -2,6 +2,8 @@
 
 ## Control your computer with your hand and a webcam
 
+## This is broken
+
 ### Usage
 
 The cursor position is calculated based off where your index finger is in the camera frame.
