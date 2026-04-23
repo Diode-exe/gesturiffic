@@ -1,17 +1,19 @@
-import cv2
-import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
+"""Calculate hand landmarks using MediaPipe Tasks and control mouse with pyautogui.
+This version uses the new MediaPipe Tasks API, which has a different structure than the older
+Solutions API. Make sure to download the hand_landmarker.task file
+from Google's documentation and place it in the same directory as this script."""
 
-import pyautogui
 import math
 import time
+import cv2
+import mediapipe as mp
+import pyautogui
 
 # ------------------------------------
 # Mediapipe Tasks Setup
 # ------------------------------------
 # Download hand_landmarker.task from Google's documentation
-model_path = 'hand_landmarker.task'
+MODEL_PATH = 'hand_landmarker.task'
 
 BaseOptions = mp.tasks.BaseOptions
 HandLandmarker = mp.tasks.vision.HandLandmarker
@@ -20,7 +22,7 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 
 # Create HandLandmarker instance
 options = HandLandmarkerOptions(
-    base_options=BaseOptions(model_asset_path=model_path),
+    base_options=BaseOptions(model_asset_path=MODEL_PATH),
     running_mode=VisionRunningMode.VIDEO, # Using VIDEO mode for sync loop
     num_hands=1,
     min_hand_detection_confidence=0.5,
@@ -40,28 +42,37 @@ HAND_MIN = 0.05
 HAND_MAX = 0.95
 
 def normalize(v):
+    """Normalize a value from HAND_MIN-HAND_MAX to 0-1"""
     return (v - HAND_MIN) / (HAND_MAX - HAND_MIN)
 
 def ease(x):
+    """Ease function for smooth cursor movement"""
     return x * x * x * (x * (x * 6 - 15) + 10)
 
 def pinch_distance(landmarks, a, b):
+    """Calculate distance between two landmarks"""
     ax, ay = landmarks[a].x, landmarks[a].y
     bx, by = landmarks[b].x, landmarks[b].y
     return math.hypot(bx - ax, by - ay)
 
-def pinch_index(lm): return pinch_distance(lm, 4, 8) < 0.08
-def pinch_middle(lm): return pinch_distance(lm, 4, 12) < 0.08
-def pinch_pinky(lm): return pinch_distance(lm, 4, 20) < 0.08
+def pinch_index(lm):
+    """Detect if index finger is pinching (tip to thumb)"""
+    return pinch_distance(lm, 4, 8) < 0.08
+def pinch_middle(lm):
+    """Detect if middle finger is pinching (tip to thumb)"""
+    return pinch_distance(lm, 4, 12) < 0.08
+def pinch_pinky(lm):
+    """Detect if pinky finger is pinching (tip to thumb)"""
+    return pinch_distance(lm, 4, 20) < 0.08
 
 # ------------------------------------
 # State
 # ------------------------------------
 prev_x, prev_y = 0, 0
-smooth = 0.25
+SMOOTH = 0.25
 index_last = middle_last = pinky_last = False
 last_right_click = 0
-right_delay = 0.3
+RIGHT_DELAY = 0.3
 
 # ------------------------------------
 # Camera
@@ -108,8 +119,8 @@ while cap.isOpened():
         target_x = nx * screen_w
         target_y = ny * screen_h
 
-        cur_x = prev_x + (target_x - prev_x) * smooth
-        cur_y = prev_y + (target_y - prev_y) * smooth
+        cur_x = prev_x + (target_x - prev_x) * SMOOTH
+        cur_y = prev_y + (target_y - prev_y) * SMOOTH
 
         pyautogui.moveTo(cur_x, cur_y)
         prev_x, prev_y = cur_x, cur_y
@@ -133,7 +144,7 @@ while cap.isOpened():
             print("Drag end")
 
         now = time.time()
-        if pinky_now and not pinky_last and now - last_right_click >= right_delay:
+        if pinky_now and not pinky_last and now - last_right_click >= RIGHT_DELAY:
             pyautogui.rightClick()
             last_right_click = now
             print("Right click")
