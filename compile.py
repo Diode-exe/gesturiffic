@@ -172,8 +172,3 @@ if __name__ == "__main__":
     compiler.compile(test_mode_ref=test_mode,
                      simulate_copy_ref=simulate_copy, simulate_hand_landmarker_check_ref=simulate_hand,
                      run_after_compile_ref=run_after_compile, archive_ref=archive)
-    # print(f"{compiler.prog_name}: {compiler.success_text_in_green} "
-    #       "Compilation with applied settings completed.")
-    # compiler.compile(test_mode=True, simulate_copy=True, simulate_hand_landmarker_check=True)
-    # print(f"{compiler.prog_name}: {compiler.success_text_in_green} "
-    #       "Test compilation with all simulations completed.")
