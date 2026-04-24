@@ -152,7 +152,8 @@ while cap.isOpened():
         index_last, middle_last, pinky_last = idx_now, mid_now, pinky_now
 
     cv2.imshow("Gesturiffic", frame)
-    if cv2.waitKey(1) & 0xFF == 27: break
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
 landmarker.close()
 cap.release()
