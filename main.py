@@ -70,8 +70,8 @@ def pinch_pinky(lm):
 # ------------------------------------
 prev_x, prev_y = 0, 0
 SMOOTH = 0.25
-index_last = middle_last = pinky_last = False
-last_right_click = 0
+INDEX_LAST = MIDDLE_LAST = PINKY_LAST = False
+LAST_RIGHT_CLICK = 0
 RIGHT_DELAY = 0.3
 
 # ------------------------------------
@@ -85,7 +85,8 @@ print("Welcome to Gesturiffic (Tasks Edition)")
 
 while cap.isOpened():
     ret, frame = cap.read()
-    if not ret: break
+    if not ret:
+        break
 
     frame = cv2.flip(frame, 1)
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -132,24 +133,24 @@ while cap.isOpened():
         mid_now = pinch_middle(hand_lms)
         pinky_now = pinch_pinky(hand_lms)
 
-        if idx_now and not index_last:
+        if idx_now and not INDEX_LAST:
             pyautogui.click()
             print("Click")
 
-        if mid_now and not middle_last:
+        if mid_now and not MIDDLE_LAST:
             pyautogui.mouseDown()
             print("Drag start")
-        elif not mid_now and middle_last:
+        elif not mid_now and MIDDLE_LAST:
             pyautogui.mouseUp()
             print("Drag end")
 
         now = time.time()
-        if pinky_now and not pinky_last and now - last_right_click >= RIGHT_DELAY:
+        if pinky_now and not PINKY_LAST and now - LAST_RIGHT_CLICK >= RIGHT_DELAY:
             pyautogui.rightClick()
-            last_right_click = now
+            LAST_RIGHT_CLICK = now
             print("Right click")
 
-        index_last, middle_last, pinky_last = idx_now, mid_now, pinky_now
+        INDEX_LAST, MIDDLE_LAST, PINKY_LAST = idx_now, mid_now, pinky_now
 
     cv2.imshow("Gesturiffic", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
