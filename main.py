@@ -8,7 +8,7 @@ import time
 import cv2
 import mediapipe as mp
 import pyautogui
-from compile import Compile
+from version import Version
 
 # ------------------------------------
 # Mediapipe Tasks Setup
@@ -35,8 +35,8 @@ landmarker = HandLandmarker.create_from_options(options)
 
 pyautogui.FAILSAFE = False
 
-compiler = Compile()
-VERSION = compiler.version
+versioner = Version()
+VERSION = versioner.version
 
 # ------------------------------------
 # Hand normalization & Helpers

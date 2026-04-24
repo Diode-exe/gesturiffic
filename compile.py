@@ -8,6 +8,7 @@ import subprocess
 import argparse
 import shutil
 import sys
+from version import Version
 
 class Compile:
     """Class to handle compilation of the main.py script
@@ -16,7 +17,8 @@ class Compile:
     but has a compile method that can be called with test mode and simulation options."""
     def __init__(self, main_script=None, dist_folder=None, landmarker_model=None):
         self.prog_name = "Gesturiffic Compiler"
-        self.version = "2.1.1"
+        self.versioner = Version()
+        self.version = self.versioner.version
         self.main_script = Path(main_script) if main_script else Path("main.py")
         self.dist_folder = Path(dist_folder) if dist_folder else Path("main.dist")
         self.landmarker_model = Path(landmarker_model) if landmarker_model else Path("hand_landmarker.task")
