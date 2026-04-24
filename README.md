@@ -20,10 +20,10 @@ Also, this will not work in Task Manager, on the lock screen, or in the User Acc
 
 ### Requirements
 
-```pip install -r .\requirements.txt```
-
-### Compiling
-
+- Python 3.11 or higher
+- A webcam (built in or external)
 Run ```python.exe checker.py --make-changes``` to create the necessary virtual environment and install dependencies. This only needs to be done once.
 
-Run ```python.exe compile.py --real --run-after-compile --archive``` to compile the program and run it immediately after. The --archive flag will create a zip file of the dist folder. The --real flag will compile the program without the test mode and simulation options (outdated). The --run-after-compile flag will run the program immediately after compiling. The compiled program will be in the dist folder. You can also run ```python.exe compile.py --help``` for more options. You need to have have a venv called .venv going otherwise this won't work. You can create one with ```python -m venv .venv``` and activate it with ```.\.venv\Scripts\activate``` on Windows or ```source .venv/bin/activate``` on Linux/Mac.
+### Compiling (Optional)
+
+Run ```python.exe compile.py --real --run-after-compile --archive``` to compile the program and run it immediately after. The --archive flag will create a zip file of the dist folder. The --real flag will compile the program without the test mode and simulation options (outdated). The --run-after-compile flag will run the program immediately after compiling. The compiled program will be in the ```main.dist``` folder. You can also run ```python.exe compile.py --help``` for help.
