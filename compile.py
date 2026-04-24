@@ -27,6 +27,7 @@ class Compile:
         self.mediapipe_in_path = Path(self.dist_folder / "mediapipe")
         self.compiled_folder = Path("compiled")
         self.archive_name = f"Gesturiffic_{self.version}.tar.xz"
+        self.readme_file = Path("README.md")
         self.error_text_in_red = "\033[91mError:\033[0m"
         self.warning_text_in_yellow = "\033[93mWarning:\033[0m"
         self.success_text_in_green = "\033[92mSuccess:\033[0m"
@@ -99,6 +100,7 @@ class Compile:
                         print(f"{self.prog_name}: {self.info_text_in_cyan} Creating archive {self.archive_name} from {self.compiled_folder}...")
                         try:
                             shutil.copytree(self.dist_folder, self.compiled_folder, dirs_exist_ok=True)
+                            shutil.copy2(self.readme_file, self.compiled_folder / self.readme_file.name)
                             subprocess.run(self.archive_args, check=True)
                             shutil.rmtree(self.compiled_folder)
                             print(f"{self.prog_name}: {self.success_text_in_green} Archive {self.archive_name} created successfully.")
