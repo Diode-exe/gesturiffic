@@ -1,3 +1,5 @@
+"""A simple module to check if the necessary files and folders are present."""
+
 import os
 import argparse
 import sys
@@ -7,6 +9,11 @@ class Checker:
     def __init__(self):
         self.required_venv = ".venv"
         self.activate_script = ""
+        self.program_name = "Gesturiffic Checker"
+        self.error_text_in_red = "\033[91mError:\033[0m"
+        self.warning_text_in_yellow = "\033[93mWarning:\033[0m"
+        self.success_text_in_green = "\033[92mSuccess:\033[0m"
+        self.info_text_in_cyan = "\033[96mInfo:\033[0m"
         if os.name == 'nt':  # Windows
             self.activate_script = f"{self.required_venv}\\Scripts\\activate"
         else:  # Unix/Linux/Mac
@@ -15,29 +22,31 @@ class Checker:
     def check_installed_version_of_python(self):
         """Check if Python 3.11 installation is present."""
         if sys.version_info < (3, 11):
-            print("Error: Python 3.11 or higher is required.")
-            print("Please install Python 3.11 from https://www.python.org/downloads/")
+            print(f"{self.program_name} {self.error_text_in_red} Python 3.11 or higher is required.")
+            print(f"{self.program_name} {self.info_text_in_cyan} Please install Python 3.11 from https://www.python.org/downloads/")
             return False
         return True
 
     def check_venv(self):
         """Check if the required virtual environment is present."""
         if not os.path.isdir(self.required_venv):
-            print(f"Error: Required virtual environment '{self.required_venv}' not found.")
-            print("Rerun script with --make-changes to create it automatically.")
+            print(f"{self.program_name}: {self.error_text_in_red} Required virtual environment '{self.required_venv}' not found.")
+            print(f"{self.program_name}: {self.info_text_in_cyan} Rerun script with --make-changes to create it automatically.")
             return False
+        else:
+            print(f"{self.program_name}: {self.success_text_in_green} Virtual environment '{self.required_venv}' found.")
         return True
 
     def make_changes(self):
         """Make changes to the system if necessary files/folders are missing."""
         if not self.check_venv():
-            print(f"Creating virtual environment '{self.required_venv}'...")
+            print(f"{self.program_name}: {self.info_text_in_cyan} Creating virtual environment '{self.required_venv}'...")
             os.system(f"python -m venv {self.required_venv}")
 
             os.system(f"{self.activate_script} && pip install -r requirements.txt")
-            print(f"Virtual environment '{self.required_venv}' created.")
+            print(f"{self.program_name}: {self.success_text_in_green} Virtual environment '{self.required_venv}' created.")
         else:
-            print(f"Virtual environment '{self.required_venv}' already exists. No changes made.")
+            print(f"{self.program_name}: {self.info_text_in_cyan} Virtual environment '{self.required_venv}' already exists. No changes made.")
 
     def parse_args(self):
         """Parse command line arguments. Don't run this outside of the bottom of this file."""
@@ -52,7 +61,7 @@ if __name__ == "__main__":
         checker.make_changes()
     else:
         if not checker.check_installed_version_of_python():
-            print("Please install Python 3.11 or higher and rerun the script.")
+            print(f"{checker.program_name}: {checker.error_text_in_red} Please install Python 3.11 or higher and rerun the script.")
             sys.exit(1)
         if not checker.check_venv():
-            print("Please run the script with --make-changes to create the necessary virtual environment.")
+            print(f"{checker.program_name}: {checker.error_text_in_red} Please run the script with --make-changes to create the necessary virtual environment.")
