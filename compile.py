@@ -1,4 +1,4 @@
-"""Compiler script for Gesturiffic using Nuitka. 
+"""Compiler script for Gesturiffic using Nuitka.
 This script compiles the main.py file into a standalone executable.
 It also checks for the presence of the hand_landmarker.task file and copies it to the dist
 folder if it exists. If the model file is missing, it prints a warning message."""
@@ -14,13 +14,14 @@ class Compile:
     using Nuitka and manage the hand_landmarker.task file.
     Takes no args on initialization,
     but has a compile method that can be called with test mode and simulation options."""
-    def __init__(self):
+    def __init__(self, main_script=None, dist_folder=None, landmarker_model=None):
         self.prog_name = "Gesturiffic Compiler"
-        self.main_script = Path("main.py")
-        self.dist_folder = Path("main.dist")
-        self.landmarker_model = Path("hand_landmarker.task")
-        self.landmarker_model_in_path = self.dist_folder / "hand_landmarker.task"
+        self.main_script = Path(main_script) if main_script else Path("main.py")
+        self.dist_folder = Path(dist_folder) if dist_folder else Path("main.dist")
+        self.landmarker_model = Path(landmarker_model) if landmarker_model else Path("hand_landmarker.task")
+        self.landmarker_model_in_path = Path(self.dist_folder / "hand_landmarker.task")
         self.venv_folder = Path(".venv/Lib/site-packages/mediapipe")
+        self.mediapipe_in_path = Path(self.dist_folder / "mediapipe")
         self.error_text_in_red = "\033[91mError:\033[0m"
         self.warning_text_in_yellow = "\033[93mWarning:\033[0m"
         self.success_text_in_green = "\033[92mSuccess:\033[0m"
@@ -30,7 +31,7 @@ class Compile:
             "-m",
             "nuitka",
             "--standalone",
-            ".\\main.py"
+            str(self.main_script)
         ]
 
     def compile(self, test_mode_ref=False, simulate_copy_ref=True,
@@ -63,8 +64,24 @@ class Compile:
                     # Use shutil.copy for reliable cross-platform copying
                     if not self.dist_folder.exists():
                         self.dist_folder.mkdir(parents=True, exist_ok=True)
-                    shutil.copy(str(self.landmarker_model), str(self.landmarker_model_in_path))
+                    shutil.copy2(str(self.landmarker_model), str(self.landmarker_model_in_path))
                     print(f"{self.prog_name}: {self.success_text_in_green} {self.landmarker_model} successfully copied to {self.dist_folder}.")
+
+                    # Copy the mediapipe package directory from the virtualenv into the dist folder.
+                    # Use copytree for directories and handle existing destination / permission issues.
+                    if self.venv_folder.exists() and self.venv_folder.is_dir():
+                        try:
+                            if self.mediapipe_in_path.exists():
+                                shutil.rmtree(self.mediapipe_in_path)
+                            shutil.copytree(self.venv_folder, self.mediapipe_in_path)
+                            print(f"{self.prog_name}: {self.success_text_in_green} mediapipe package successfully copied to {self.dist_folder}.")
+                        except PermissionError as e:
+                            print(f"{self.prog_name}: {self.error_text_in_red} Permission denied while copying mediapipe: {e}\n"
+                                  "Try running this script with administrator privileges or ensure the .venv folder is readable.")
+                        except Exception as e:
+                            print(f"{self.prog_name}: {self.error_text_in_red} Failed to copy mediapipe package: {e}")
+                    else:
+                        print(f"{self.prog_name}: {self.warning_text_in_yellow} mediapipe package not found at {self.venv_folder}; skipping mediapipe copy.")
                     if run_after_compile_ref:
                         print(f"{self.prog_name}: {self.info_text_in_cyan} Running the compiled executable...")
                         try:
@@ -95,7 +112,6 @@ class Compile:
                     print(f"{self.prog_name}: {self.warning_text_in_yellow} {self.landmarker_model} not found.\n"
                         "Please download it from Google's documentation\n"
                         "and place it in the same directory as this script.\n")
-
 
 def _parse_args():
     p = argparse.ArgumentParser(description="Compile Gesturiffic with optional test mode")
