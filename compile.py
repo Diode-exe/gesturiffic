@@ -33,7 +33,8 @@ class Compile:
             ".\\main.py"
         ]
 
-    def compile(self, test_mode_ref=False, simulate_copy_ref=True, simulate_hand_landmarker_check_ref=True, run_after_compile_ref=False):
+    def compile(self, test_mode_ref=False, simulate_copy_ref=True,
+                simulate_hand_landmarker_check_ref=True, run_after_compile_ref=False):
         """Compile the main.py script using Nuitka.
         If test_mode is True, skip actual compilation and just simulate it.
         Also checks for the presence of the hand_landmarker.task file
