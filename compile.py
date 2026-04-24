@@ -92,7 +92,7 @@ class Compile:
                             return
                     else:
                         print(f"{self.prog_name}: {self.warning_text_in_yellow} mediapipe package not found at {self.venv_folder}; skipping mediapipe copy.")
-                        
+
                     if archive_ref:
                         print(f"{self.prog_name}: {self.info_text_in_cyan} Creating archive {self.archive_name} from {self.compiled_folder}...")
                         try:
@@ -102,41 +102,41 @@ class Compile:
                             print(f"{self.prog_name}: {self.success_text_in_green} Archive {self.archive_name} created successfully.")
                         except subprocess.CalledProcessError as e:
                             print(f"{self.prog_name}: {self.error_text_in_red} Failed to create archive: {e}")
-                    
+
                     if run_after_compile_ref:
                         print(f"{self.prog_name}: {self.info_text_in_cyan} Running the compiled executable...")
                         try:
                             subprocess.run([str(self.dist_folder / "main.exe")], check=True)
                         except subprocess.CalledProcessError as e:
                             print(f"{self.prog_name}: {self.error_text_in_red} Failed to run the compiled executable: {e}")
-                
+
                 except Exception as e:
                     print(f"{self.prog_name}: {self.error_text_in_red} Failed to copy model: {e}")
-           
+
             else:
                 print(f"{self.prog_name}: {self.warning_text_in_yellow} {self.landmarker_model} not found.\n"
                     "Please download it from Google's documentation\n"
                     "and place it in the same directory as this script.\n")
-        
+
         else:
             print(f"{self.prog_name}: {self.success_text_in_green} Test compile successful. (Compilation skipped in test mode)")
 
             if simulate_hand_landmarker_check_ref:
-                
+
                 if self.landmarker_model.exists():
-                
+
                     if simulate_copy_ref:
                         print(f"{self.prog_name}: {self.landmarker_model} found. (Simulated) copying to dist folder...")
-                
+
                         if self.dist_folder.exists():
                             print(f"{self.prog_name}: {self.success_text_in_green} {self.landmarker_model} would be copied to {self.dist_folder}.\n"
                                 "(Copy skipped in test mode)")
                         else:
                             print(f"{self.prog_name}: {self.info_text_in_cyan} Dist folder does not exist; copy would create it.")
-                
+
                     else:
                         print(f"{self.prog_name}: {self.success_text_in_green} Not simulating copy of {self.landmarker_model} to dist folder.\n")
-                
+
                 else:
                     print(f"{self.prog_name}: {self.warning_text_in_yellow} {self.landmarker_model} not found.\n"
                         "Please download it from Google's documentation\n"
