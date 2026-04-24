@@ -8,6 +8,7 @@ import time
 import cv2
 import mediapipe as mp
 import pyautogui
+from compile import Compile
 
 # ------------------------------------
 # Mediapipe Tasks Setup
@@ -33,7 +34,9 @@ options = HandLandmarkerOptions(
 landmarker = HandLandmarker.create_from_options(options)
 
 pyautogui.FAILSAFE = False
-screen_w, screen_h = pyautogui.size()
+
+compiler = Compile()
+VERSION = compiler.version
 
 # ------------------------------------
 # Hand normalization & Helpers
@@ -73,15 +76,17 @@ SMOOTH = 0.25
 INDEX_LAST = MIDDLE_LAST = PINKY_LAST = False
 LAST_RIGHT_CLICK = 0
 RIGHT_DELAY = 0.3
+SCREEN_W, SCREEN_H = pyautogui.size()
+CAP_W, CAP_H = SCREEN_W // 2, SCREEN_H // 2
 
 # ------------------------------------
 # Camera
 # ------------------------------------
 cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 896)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 504)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAP_W)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAP_H)
 
-print("Welcome to Gesturiffic (Tasks Edition)")
+print(f"Welcome to Gesturiffic {VERSION}!")
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -117,8 +122,8 @@ while cap.isOpened():
         nx = ease(min(max(normalize(raw_x), 0), 1))
         ny = ease(min(max(normalize(raw_y), 0), 1))
 
-        target_x = nx * screen_w
-        target_y = ny * screen_h
+        target_x = nx * SCREEN_W
+        target_y = ny * SCREEN_H
 
         cur_x = prev_x + (target_x - prev_x) * SMOOTH
         cur_y = prev_y + (target_y - prev_y) * SMOOTH
@@ -152,7 +157,7 @@ while cap.isOpened():
 
         INDEX_LAST, MIDDLE_LAST, PINKY_LAST = idx_now, mid_now, pinky_now
 
-    cv2.imshow("Gesturiffic", frame)
+    cv2.imshow(f"Gesturiffic {VERSION}", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
